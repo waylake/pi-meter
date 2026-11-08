@@ -153,8 +153,8 @@ function renderOverview(
     ` ${theme.fg("muted", "total")} ${theme.fg("text", formatUSD(totalCost))}  ${theme.fg("muted", "avg/day")} ${theme.fg("text", formatUSD(daily.length ? totalCost / daily.length : 0))}  ${theme.fg("muted", "top model")} ${theme.fg("text", report.topModel ? modelLabel(report.topModel, report) : "—")}`,
   );
 
-  const providerBudget = width >= 76 ? 4 : 3;
-  const modelBudget = Math.max(3, Math.min(6, height - 12));
+  const providerBudget = width >= 76 ? Math.min(report.providers.length, 6) : 3;
+  const modelBudget = Math.max(3, Math.min(12, height - 16));
   if (report.providers.length > 0) {
     lines.push("");
     lines.push(sectionTitle("Providers", width, theme, `${report.providers.length} active`));
@@ -172,6 +172,47 @@ function renderOverview(
   }
   if (report.models.length === 0) {
     lines.push(` ${theme.fg("dim", "No usage recorded in this period.")}`);
+  }
+
+  const recentBudget = Math.min(6, height - lines.length - 3);
+  if (recentBudget >= 2 && report.sessions.length > 0) {
+    lines.push("");
+    lines.push(sectionTitle("Recent sessions", width, theme, `${report.sessions.length} in period`));
+    const sessionWidth = Math.max(16, Math.min(width - 40, 44));
+    for (const session of report.sessions.slice(0, recentBudget)) {
+      lines.push(
+        joinColumns([
+          { text: ` ${theme.fg("muted", truncate(session.label, sessionWidth))}`, width: sessionWidth + 1 },
+          { text: theme.fg("text", formatUSD(session.totals.costUSD)), width: 9, align: "right" },
+          { text: theme.fg("dim", `${formatTokens(session.totals.tokens)} tok`), width: 12, align: "right" },
+          { text: theme.fg("dim", `${formatCount(session.totals.requests)} req`), width: 11, align: "right" },
+        ]),
+      );
+    }
+    const headroomBudget = height - lines.length - 3;
+    const cards = data.quotas;
+    if (headroomBudget >= 2 && cards.length > 0) {
+      lines.push("");
+      lines.push(sectionTitle("Quota headroom", width, theme, "5 Quotas for details"));
+      for (const card of cards.slice(0, headroomBudget)) {
+        const worst = card.windows.reduce<QuotaWindow | undefined>(
+          (best, window) => (!best || window.usedPercent > best.usedPercent ? window : best),
+          undefined,
+        );
+        const color = quotaColor(card.status);
+        const text = card.error
+          ? theme.fg("error", "error")
+          : worst
+            ? `${theme.fg(color, usageBar(worst.usedPercent, 8))} ${theme.fg(color, percentText(worst.usedPercent))} ${theme.fg("dim", worst.label)}`
+            : theme.fg("dim", card.balance ? `${card.balance.label} ${card.balance.value}` : "—");
+        lines.push(
+          joinColumns([
+            { text: ` ${theme.fg("text", pad(truncate(card.label, 22), 22))}`, width: 23 },
+            { text, width: Math.max(16, width - 24) },
+          ]),
+        );
+      }
+    }
   }
 
   return lines;
