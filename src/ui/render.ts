@@ -381,10 +381,11 @@ function modelLabel(row: GroupBucket, report: Report): string {
 
 function renderDetail(row: GroupBucket, theme: MeterTheme, width: number): string[] {
   const topModels = row.models.slice(0, 3).join(", ");
+  const label = 10;
   return [
-    ` ${theme.fg("muted", pad("models", 8))}${theme.fg("text", truncate(topModels || "—", width - 12))}`,
-    ` ${theme.fg("muted", pad("tokens", 8))}${theme.fg("text", `${formatTokens(row.totals.inputTokens)} in · ${formatTokens(row.totals.outputTokens)} out · ${formatTokens(row.totals.cacheReadTokens)} cached`)}`,
-    ` ${theme.fg("muted", pad("requests", 8))}${theme.fg("text", `${formatCount(row.totals.requests)} · ${formatUSD(row.totals.requests ? row.totals.costUSD / row.totals.requests : 0)} avg`)}`,
+    ` ${theme.fg("muted", pad("models", label))}${theme.fg("text", truncate(topModels || "—", width - label - 1))}`,
+    ` ${theme.fg("muted", pad("tokens", label))}${theme.fg("text", `${formatTokens(row.totals.inputTokens)} in · ${formatTokens(row.totals.outputTokens)} out · ${formatTokens(row.totals.cacheReadTokens)} cached`)}`,
+    ` ${theme.fg("muted", pad("requests", label))}${theme.fg("text", `${formatCount(row.totals.requests)} · ${formatUSD(row.totals.requests ? row.totals.costUSD / row.totals.requests : 0)} avg`)}`,
   ];
 }
 
