@@ -1,5 +1,9 @@
 # pi-meter 📊
 
+[![CI](https://github.com/waylake/pi-meter/actions/workflows/ci.yml/badge.svg)](https://github.com/waylake/pi-meter/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-4d9abf)](LICENSE)
+[![Node](https://img.shields.io/badge/node-22.18%2B-3fb950)](https://nodejs.org)
+
 > Every pi token, every provider limit, inside the terminal you are already in.
 
 A local-first **usage, cost, and quota cockpit** for the [pi coding agent](https://github.com/earendil-works/pi). It reads the session transcripts pi already writes, prices them at the rates recorded in each assistant message, and shows the result in a keyboard-driven TUI — plus live subscription windows for providers that expose them.
