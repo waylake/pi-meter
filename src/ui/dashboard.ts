@@ -127,7 +127,12 @@ export class DashboardComponent implements Component {
       return;
     }
     if (matchesKey(data, "enter")) {
-      this.state.detail = !this.state.detail;
+      if (this.state.tab === "overview") {
+        this.state.setTab("models");
+        this.state.detail = true;
+      } else {
+        this.state.detail = !this.state.detail;
+      }
       this.refreshView();
       return;
     }

@@ -10,4 +10,4 @@ Initial release.
 - Quota adapters for OpenCode Go, OpenAI Codex, Claude, and Neuralwatt (read-only credentials)
 - `/meter-report`, `/meter-quota`, `/meter-export`, `/meter-widget`, `/meter-status`
 - Standalone CLI with text, JSON, and standalone HTML reports
-- 27 node:test cases covering parsing, aggregation, quota payloads, and dashboard rendering
+- 32 node:test cases covering parsing, aggregation, quota payloads, dashboard rendering, and text/HTML reports

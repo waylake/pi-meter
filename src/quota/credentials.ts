@@ -30,7 +30,7 @@ export async function credentialForProvider(
   for (const providerId of providerIds) {
     const entry = asRecord(auth[providerId]);
     if (!entry) continue;
-    const credential = credentialFromEntry(entry, `pi auth.json:${providerId}`);
+    const credential = credentialFromEntry(entry, `pi auth.json:${providerId}`, env);
     if (credential) return credential;
   }
 
@@ -38,9 +38,9 @@ export async function credentialForProvider(
   const providers = asRecord(models.providers);
   for (const providerId of providerIds) {
     const entry = asRecord(providers?.[providerId]);
-    const key = entry?.apiKey;
-    if (typeof key === "string" && key.trim() && !key.trim().startsWith(COMMAND_PREFIX)) {
-      return { type: "api_key", value: key.trim(), source: `pi models.json:${providerId}` };
+    const key = resolveKeyValue(entry?.apiKey, env);
+    if (key) {
+      return { type: "api_key", value: key, source: `pi models.json:${providerId}` };
     }
   }
 
@@ -134,11 +134,15 @@ export async function credentialFromNeuralwatt(
   return credentialForProvider(agentDir, env, ["neuralwatt"], ["NEURALWATT_API_KEY"]);
 }
 
-function credentialFromEntry(entry: Record<string, unknown>, source: string): Credential | undefined {
+function credentialFromEntry(
+  entry: Record<string, unknown>,
+  source: string,
+  env: NodeJS.ProcessEnv,
+): Credential | undefined {
   const type = entry.type;
   if (type === "api_key") {
-    const key = typeof entry.key === "string" ? entry.key.trim() : "";
-    if (key && !key.startsWith(COMMAND_PREFIX)) return { type: "api_key", value: key, source };
+    const key = resolveKeyValue(entry.key, env);
+    if (key) return { type: "api_key", value: key, source };
     return undefined;
   }
   if (type === "oauth") {
@@ -157,6 +161,21 @@ function credentialFromEntry(entry: Record<string, unknown>, source: string): Cr
     }
   }
   return undefined;
+}
+
+/**
+ * pi models.json allows `$VAR` / `${VAR}` references and `!command` shell lookups.
+ * Resolve plain references; never execute commands from a usage reader.
+ */
+function resolveKeyValue(value: unknown, env: NodeJS.ProcessEnv): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.startsWith(COMMAND_PREFIX)) return undefined;
+  const match = trimmed.match(/^\$\{([A-Za-z_][A-Za-z0-9_]*)\}$|^\$([A-Za-z_][A-Za-z0-9_]*)$/);
+  if (!match) return trimmed;
+  const name = match[1] ?? match[2] ?? "";
+  const resolved = env[name]?.trim();
+  return resolved && !resolved.startsWith(COMMAND_PREFIX) ? resolved : undefined;
 }
 
 async function readJson(file: string): Promise<Record<string, unknown> | undefined> {

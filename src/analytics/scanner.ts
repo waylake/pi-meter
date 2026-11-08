@@ -270,20 +270,9 @@ function makeRecord(input: RecordInput): UsageRecord {
   const derivedTotal = inputTokens + outputTokens + cacheReadTokens + cacheWriteTokens;
   const totalTokens = Math.max(numberValue(usage.totalTokens) ?? 0, derivedTotal);
   const cost = asRecord(usage.cost);
-  let costUSD = 0;
-  if (cost) {
-    costUSD =
-      numberValue(cost.total) ??
-      numberValue(cost.totalFromProvider) ??
-      sumCost(cost) ??
-      0;
-    if (costUSD === 0) {
-      const providerTotal = numberValue(cost.totalFromProvider);
-      if (providerTotal !== undefined) costUSD = providerTotal;
-    }
-  } else {
-    costUSD = numberValue(usage.cost) ?? 0;
-  }
+  const costUSD = cost
+    ? numberValue(cost.total) ?? numberValue(cost.totalFromProvider) ?? sumCost(cost) ?? 0
+    : numberValue(usage.cost) ?? 0;
 
   return {
     ...(input.entryId ? { entryId: input.entryId } : {}),

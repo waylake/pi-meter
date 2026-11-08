@@ -24,7 +24,7 @@ import {
   usageBar,
   type MeterTheme,
 } from "./theme.ts";
-import { visibleWidth } from "@earendil-works/pi-tui";
+import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 
 export interface RenderContext {
   width: number;
@@ -69,7 +69,7 @@ export function renderDashboard(state: DashboardState, context: RenderContext): 
 
   lines.push("");
   lines.push(...renderHints(state, width, context.theme));
-  return lines.map((line) => truncate(line, width)).slice(0, height);
+  return lines.slice(0, height).map((line) => truncateToWidth(line, width));
 }
 
 function renderHeader(state: DashboardState, width: number, context: RenderContext): string[] {
@@ -168,7 +168,9 @@ function renderOverview(
   lines.push(sectionTitle("Top models", width, theme, state.sortMetric === "cost" ? "by spend" : `by ${state.sortMetric}`));
   const modelWidth = Math.max(12, Math.min(width - 60, 34));
   for (const model of report.models.slice(0, modelBudget)) {
-    lines.push(renderModelRow(model, modelWidth, width, theme, report.totals.costUSD, report));
+    lines.push(
+      renderModelRow(model, modelWidth, width, theme, report.totals.costUSD, report, state.tab === "overview" && state.selection === report.models.indexOf(model)),
+    );
   }
   if (report.models.length === 0) {
     lines.push(` ${theme.fg("dim", "No usage recorded in this period.")}`);
@@ -259,12 +261,14 @@ function renderModelRow(
   theme: MeterTheme,
   totalCost: number,
   report: Report,
+  selected = false,
 ): string {
   const share = totalCost > 0 ? (group.totals.costUSD / totalCost) * 100 : 0;
   const name = truncate(modelLabel(group, report), labelWidth);
   const barWidth = Math.max(6, Math.min(12, width - labelWidth - 52));
+  const marker = selected ? theme.fg("accent", "▸") : " ";
   return joinColumns([
-    { text: ` ${theme.fg("text", pad(name, labelWidth))}`, width: labelWidth + 1 },
+    { text: `${marker}${theme.fg("text", pad(name, labelWidth))}`, width: labelWidth + 1 },
     { text: theme.fg("dim", barWidth > 0 ? usageBar(share, barWidth) : ""), width: barWidth },
     { text: theme.fg("text", formatUSD(group.totals.costUSD)), width: 9, align: "right" },
     { text: theme.fg("dim", formatTokens(group.totals.tokens)), width: 8, align: "right" },
@@ -366,7 +370,7 @@ function renderTableRow(
     { text: theme.fg("muted", formatCount(row.totals.requests)), width: widths.requests, align: "right" },
     { text: theme.fg("dim", extra), width: widths.extra, align: "right" },
   ]);
-  return truncate(line, width);
+  return truncateToWidth(line, width);
 }
 
 function modelLabel(row: GroupBucket, report: Report): string {
@@ -512,7 +516,7 @@ function renderHelp(width: number, height: number, theme: MeterTheme): string[] 
     ["1 – 5", "switch tab (overview, models, projects, sessions, quotas)"],
     ["tab / shift+tab", "cycle tabs"],
     ["↑ ↓ / j k", "move selection, scroll lists"],
-    ["enter", "toggle detail panel for the selected row"],
+    ["enter", "open the selected row (models tab / detail panel)"],
     ["p / shift+p", "next / previous period"],
     ["s", "cycle sort: spend → tokens → requests"],
     ["r", "rescan sessions and refresh quotas"],
