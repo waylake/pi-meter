@@ -1,0 +1,59 @@
+{
+  "name": "@waylake/pi-meter",
+  "version": "0.1.0",
+  "description": "A local-first usage, cost, and quota cockpit for the pi coding agent.",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "pi",
+    "pi-coding-agent",
+    "usage",
+    "cost",
+    "quota",
+    "tui"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/waylake/pi-meter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/waylake/pi-meter/issues"
+  },
+  "homepage": "https://github.com/waylake/pi-meter#readme",
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "files": [
+    "src",
+    "bin",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/*.test.ts",
+    "check": "npm run typecheck && npm test",
+    "meter": "node bin/pi-meter.mjs"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^1.5.0",
+    "@earendil-works/pi-tui": "^1.5.0",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  },
+  "bin": {
+    "pi-meter": "./bin/pi-meter.mjs"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}
