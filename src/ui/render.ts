@@ -179,7 +179,8 @@ function renderOverview(
     lines.push("");
     lines.push(sectionTitle("Recent sessions", width, theme, `${report.sessions.length} in period`));
     const sessionWidth = Math.max(16, Math.min(width - 40, 44));
-    for (const session of report.sessions.slice(0, recentBudget)) {
+    const recent = [...report.sessions].sort((a, b) => b.lastUsed - a.lastUsed);
+    for (const session of recent.slice(0, recentBudget)) {
       lines.push(
         joinColumns([
           { text: ` ${theme.fg("muted", truncate(session.label, sessionWidth))}`, width: sessionWidth + 1 },
